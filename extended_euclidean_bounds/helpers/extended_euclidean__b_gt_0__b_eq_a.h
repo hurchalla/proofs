@@ -36,6 +36,7 @@ void extended_euclidean__b_gt_0__b_eq_a(T a, T b, T* pGcd, T* pX, T* pY)
 /*10*/     assert(gcd(a,b) == a);
            // Proof: By [09, 01] a > 0 and b == a, so gcd(a,b) != gcd(0,0), and
            // gcd(a,b) == gcd(a,a) == a.
+/*H0*/     assert(gcd(a,b) >= 1);              // By [10, 09] gcd(a,b) == a >= 1
 /*11*/     assert(a1 == a);                    // By [08, 01]
 
 
@@ -76,6 +77,8 @@ void extended_euclidean__b_gt_0__b_eq_a(T a, T b, T* pGcd, T* pX, T* pY)
 /*19*/        assert(0 <= a2 && a2 < a1);
               // Proof: By [18] a2 == 0, so 0 <= a2.  By [08, 02] a1 == b > 0,
               // so 0 < a1, and thus since a2 == 0,  a2 == 0 < a1.
+/*H1*/        if (a2 != 0) assert(q <= a0/2);
+              // Proof: By [18] a2 == 0, so this assert is skipped.
 /*20*/     T x2 = x0 - q*x1;
 /*21*/        assert(x2 == 1);
               // Proof: By [03, 13, 06]  x0 == 1  and  q == 1  and  x1 == 0.
