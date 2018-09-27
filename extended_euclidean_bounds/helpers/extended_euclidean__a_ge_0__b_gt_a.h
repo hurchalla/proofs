@@ -13,6 +13,7 @@
 #  include "assert_helper_gcd.h"
 #endif
 #include <assert.h>
+#include <limits>
 
 #if defined(assert_invariant) || defined(assert_precondition)
 #  error "assert_invariant and/or assert_precondition were already defined"
@@ -25,6 +26,8 @@
 template <typename T>
 void extended_euclidean__a_ge_0__b_gt_a(T a, T b, T* pGcd, T* pX, T* pY)
 {
+        static_assert(std::numeric_limits<T>::is_integer, "");
+	    static_assert(std::numeric_limits<T>::is_signed, "");
 /*01*/     assert_precondition(b > a);
 /*02*/     assert_precondition(a >= 0);
 /*03*/  T x0 = 1;

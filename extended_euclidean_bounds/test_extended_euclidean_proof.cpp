@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 	   for (T b = 0; b < 256; ++b)
 		   extended_euclidean_proof(a, b, &gcd, &x, &y);
    }
-   std::cout << "Passed exhaustive tests for all values a and b >= 0 and < 256.\n";
+   std::cout << "Passed exhaustive tests for all values 0 <= a < 256 with 0 <= b < 256.\n";
 
 
    // test large combinations of a and b where a and b are very large or small

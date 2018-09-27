@@ -5,6 +5,7 @@
 #define EXTENDED_EUCLIDEAN_PROOF 1
 
 #include <assert.h>
+#include <limits>
 #include "extended_euclidean_collins.h"
 #include "helpers\extended_euclidean__b_gt_0__b_eq_a.h"
 #include "helpers\extended_euclidean__b_eq_0__b_eq_a.h"
@@ -14,6 +15,8 @@
 template <typename T>
 void extended_euclidean_proof(T a, T b, T* pGcd, T* pX, T* pY)
 {
+	static_assert(std::numeric_limits<T>::is_integer, "");
+	static_assert(std::numeric_limits<T>::is_signed, "");
     assert(a >= 0);
     assert(b >= 0);
 
