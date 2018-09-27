@@ -63,9 +63,9 @@ void extended_euclidean__a_ge_0__b_gt_a(T a, T b, T* pGcd, T* pX, T* pY)
               // Proof: By [01, 02] b > a >= 0.  By [08,05] a1 == b and a0 == a,
               // thus a1 > a0 >= 0.  By [10] q == a0/a1, thus q == 0.
               // Note: We do NOT have (1 <= q && q <= a0), since by [11] q == 0.
+/*12*/     T a2 = a0 - q*a1;
 /*H0*/        assert(q <= a0/2);
               // Proof: By [11, 02, 05] q == 0 == 0/2 <= a/2 == a0/2
-/*12*/     T a2 = a0 - q*a1;
 /*13*/        assert(q*a1 == 0);               // By [11]
               // Note: We do NOT have (0 < (q*a1) && (q*a1) <= a0), since by
               // [13] 0 == q*a1.
