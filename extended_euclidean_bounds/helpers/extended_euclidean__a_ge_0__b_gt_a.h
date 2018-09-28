@@ -93,6 +93,7 @@ void extended_euclidean__a_ge_0__b_gt_a(T a, T b, T* pGcd, T* pX, T* pY)
               // abs(q*y1) == abs(0*y1) == 0 <= 0 == abs(y2).
               // Note: We do NOT have (abs(y1) <= abs(y2)), since by [07, 21],
               // abs(y1) == 1 > 0 == abs(y2).
+/*H1*/        assert(y1 == 1);                 // By [07]
 
 /*23*/     x0 = x1;
 /*24*/     y0 = y1;

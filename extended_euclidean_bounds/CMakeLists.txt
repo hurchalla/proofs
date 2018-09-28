@@ -15,9 +15,15 @@ endif()
 
 add_executable(test_extended_euclidean_proof
                test_extended_euclidean_proof.cpp
+               bounds_only_collins.h
+               bounds_only_extended_euclidean_complete.h
                extended_euclidean_proof.h
                extended_euclidean_collins.h
                helpers/assert_helper_gcd.h
+               helpers/bounds_only__a_ge_0__b_gt_a.h
+               helpers/bounds_only__a_ge_0__b_gt_a__simplified.h
+               helpers/bounds_only__b_eq_0__b_eq_a.h
+               helpers/bounds_only__b_gt_0__b_eq_a.h
                helpers/extended_euclidean__a_ge_0__b_gt_a.h
                helpers/extended_euclidean__b_eq_0__b_eq_a.h
                helpers/extended_euclidean__b_gt_0__b_eq_a.h
