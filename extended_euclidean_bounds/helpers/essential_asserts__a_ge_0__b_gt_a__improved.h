@@ -1,8 +1,10 @@
 // --- This file is distributed under the MIT Open Source License, as detailed
 // in the file "LICENSE.TXT" in the root of this repository ---
 
-#ifndef BOUNDS_ONLY__A_GE_0__B_GT_A__SIMPLIFIED
-#define BOUNDS_ONLY__A_GE_0__B_GT_A__SIMPLIFIED  1
+// This file is a simplified version of essential_asserts__a_ge_0__b_gt_a.h.
+
+#ifndef ESSENTIAL_ASSERTS__A_GE_0__B_GT_A__IMPROVED
+#define ESSENTIAL_ASSERTS__A_GE_0__B_GT_A__IMPROVED  1
 
 #ifndef NDEBUG
 #  include "assert_helper_gcd.h"
@@ -17,8 +19,8 @@
 #define assert_precondition  assert
 
 
-template <typename T>
-void bounds_only__a_ge_0__b_gt_a__simplified(T a, T b, T* pGcd, T* pX, T* pY)
+template <typename T> void
+essential_asserts__a_ge_0__b_gt_a__improved(T a, T b, T* pGcd, T* pX, T* pY)
 {
    static_assert(std::numeric_limits<T>::is_integer, "");
    static_assert(std::numeric_limits<T>::is_signed, "");
