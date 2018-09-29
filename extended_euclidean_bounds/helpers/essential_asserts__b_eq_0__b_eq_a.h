@@ -1,8 +1,11 @@
 // --- This file is distributed under the MIT Open Source License, as detailed
 // in the file "LICENSE.TXT" in the root of this repository ---
 
-#ifndef BOUNDS_ONLY__B_EQ_0__B_EQ_A
-#define BOUNDS_ONLY__B_EQ_0__B_EQ_A  1
+// This file is a trimmed copy of extended_euclidean__b_eq_0__b_eq_a.h.
+// It contains only the essential assertion results, without any of the proofs.
+
+#ifndef ESSENTIAL_ASSERTS__B_EQ_0__B_EQ_A
+#define ESSENTIAL_ASSERTS__B_EQ_0__B_EQ_A  1
 
 #ifndef NDEBUG
 #  include "assert_helper_gcd.h"
@@ -18,7 +21,7 @@
 
 
 template <typename T>
-void bounds_only__b_eq_0__b_eq_a(T a, T b, T* pGcd, T* pX, T* pY)
+void essential_asserts__b_eq_0__b_eq_a(T a, T b, T* pGcd, T* pX, T* pY)
 {
    static_assert(std::numeric_limits<T>::is_integer, "");
    static_assert(std::numeric_limits<T>::is_signed, "");
@@ -36,6 +39,8 @@ void bounds_only__b_eq_0__b_eq_a(T a, T b, T* pGcd, T* pX, T* pY)
       assert(y1 == 1);
       assert(x0 == 1);
       assert(y0 == 0);
+      assert(a0 == gcd(a,b));
+      assert(a*x0 + b*y0 == gcd(a,b));
    *pX = x0;
    *pY = y0;
    *pGcd = a0;
