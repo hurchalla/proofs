@@ -40,7 +40,7 @@ void extended_euclidean__b_eq_0__b_eq_a(T a, T b, T* pGcd, T* pX, T* pY)
            // Note on the gcd definition:  One way d = gcd(a,b) can be defined
            // is that d is the integer that divides both a and b, such that for
            // every integer c that divides both a and b, d >= c.  Under this
-           // efinition, gcd(0,0) is undefined.  Another way d = gcd(a,b) can be
+           // definition, gcd(0,0) is undefined.  Another way d = gcd(a,b) can be
            // defined is that d is the non-negative integer that divides both a
            // and b, such that for every integer c that divides both a and b,
            // c divides d.  Under this definition, gcd(0,0) == 0.
