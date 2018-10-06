@@ -1,7 +1,7 @@
 // --- This file is distributed under the MIT Open Source License, as detailed
 // in the file "LICENSE.TXT" in the root of this repository ---
 
-// This file is a trimmed copy of extended_euclidean_collins.
+// This file is a trimmed copy of extended_euclidean_collins.h.
 // It contains only the essential assertion results, without any of the proofs.
 
 #ifndef ESSENTIAL_ASSERTS_COLLINS

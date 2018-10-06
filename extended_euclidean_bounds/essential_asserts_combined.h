@@ -13,8 +13,8 @@
 // b>=0).
 
 
-#ifndef ESSENTIAL_ASSERTS_FULL
-#define ESSENTIAL_ASSERTS_FULL  1
+#ifndef ESSENTIAL_ASSERTS_COMBINED
+#define ESSENTIAL_ASSERTS_COMBINED  1
 
 #ifndef NDEBUG
 #  include "helpers/assert_helper_gcd.h"
@@ -30,7 +30,7 @@
 
 
 template <typename T>
-void essential_asserts_full(T a, T b, T* pGcd, T* pX, T* pY)
+void essential_asserts_combined(T a, T b, T* pGcd, T* pX, T* pY)
 {
    static_assert(std::numeric_limits<T>::is_integer, "");
    static_assert(std::numeric_limits<T>::is_signed, "");

@@ -16,9 +16,13 @@ endif()
 add_executable(test_extended_euclidean_proof
                test_extended_euclidean_proof.cpp
                essential_asserts_collins.h
-               essential_asserts_full.h
+               essential_asserts_combined.h
                extended_euclidean_proof.h
                extended_euclidean_collins.h
+               final_bounds/improved_bounds.h
+               final_bounds/essential_asserts_improved.h
+               final_bounds/final_bounds.h
+               final_bounds/essential_asserts_final.h
                helpers/assert_helper_gcd.h
                helpers/essential_asserts__a_ge_0__b_gt_a.h
                helpers/essential_asserts__a_ge_0__b_gt_a__improved.h
