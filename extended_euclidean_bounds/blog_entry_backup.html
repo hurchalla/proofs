@@ -1,0 +1,214 @@
+<h2 class="entry-title"><a href="https://jeffhurchalla.com/2018/10/09/analysis-of-bounds-in-the-extended-euclidean-algorithm/" rel="bookmark">Analysis of Bounds in the Extended Euclidean&nbsp;Algorithm</a></h2>
+<div class="entry-meta">
+									<span class="meta-prep meta-prep-author">Posted on</span> <a href="https://jeffhurchalla.com/2018/10/09/analysis-of-bounds-in-the-extended-euclidean-algorithm/" title="8:08 pm" rel="bookmark"><span class="entry-date">October 9, 2018</span></a>					<span class="by-author"><span class="sep">by</span> <span class="author vcard"><a class="url fn n" href="https://jeffhurchalla.com/author/hurchalla/" title="View all posts by hurchalla" rel="author">hurchalla</a></span> </span>							</div><!-- .entry-meta -->
+
+				<div class="entry-content">
+                
+                <p>[This is a BACKUP COPY of a <a href="https://jeffhurchalla.com/2018/10/09/analysis-of-bounds-in-the-extended-euclidean-algorithm/">blog entry</a>!  Please read <a href="https://jeffhurchalla.com/2018/10/09/analysis-of-bounds-in-the-extended-euclidean-algorithm/">the blog entry</a> instead, since it will be up to date and use the proper formatting.]
+                
+				<p>Euclid&#8217;s method is a classic algorithm for finding the greatest common divisor (<i><strong>gcd</strong></i>) of two integers.  Donald Knuth refers to it as &#8220;the granddaddy of all algorithms, because it is the oldest nontrivial algorithm that has survived to the present day.&#8221;[<a href="#footnote" title="Jump to Sources at end of page">1</a>]  There exists a more generalized form for Euclid&#8217;s method, which is known as the <a href="https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm">Extended Euclidean Algorithm</a>.  Given two integers <strong><i>a</i></strong> and <strong><i>b</i></strong>, this algorithm finds the integer <span style="white-space:nowrap;"><strong><i>d = </i>gcd(<i>a,b</i>)</strong></span> and two integers <strong><i>x</i></strong> and <strong><i>y</i></strong>, such that <span style="white-space:nowrap;"><strong><i>a*x + b*y = d</i></strong></span>.  The usefulness of that last result, <span style="white-space:nowrap;"><strong><i>a*x + b*y = d</i></strong></span>, may seem a bit questionable at first, but without going into any details it provides a way to compute the <a href="https://en.wikipedia.org/wiki/Modular_multiplicative_inverse">modular multiplicative inverse</a>.</p>
+<p>Knuth provides an excellent description and proof for this algorithm [<a href="#footnote" title="Jump to Sources at end of page">2</a>].  It&#8217;s a fascinating study in using induction and invariants.  Translated into C++, the algorithm he describes takes this form:</p>
+<pre><code>template &lt;class T&gt;
+void extended_euclidean(const T a, const T b, T* pGcd, T* pX, T* pY)
+{
+   static_assert(std::numeric_limits&lt;T&gt;::is_integer, "");
+   static_assert(std::numeric_limits&lt;T&gt;::is_signed, "");
+   T x0=1, y0=0, a0=a;
+   T x1=0, y1=1, a1=b;
+
+   while (a1 != 0) {
+      T q = a0/a1;
+      T a2 = a0 - q*a1;
+      T x2 = x0 - q*x1;
+      T y2 = y0 - q*y1;
+      x0=x1; y0=y1; a0=a1;
+      x1=x2; y1=y2; a1=a2;
+   }
+   *pX = x0;
+   *pY = y0;
+   *pGcd = a0;
+}</code></pre>
+<p><i>Figure 1: C++ Extended Euclidean Function.</i></p>
+<p>This is the best we can do for program code, but there seems to be a serious problem. The algorithm itself presents all variables as mathematical integers, but that&#8217;s an infinite set.  We have to question whether the variables in Figure 1 are bounded to any finite maximum and minimum values. Particularly for <strong>x2</strong> and <strong>y2</strong>, it&#8217;s non-obvious from Figure 1 that those variables can&#8217;t grow without bound. Until proven otherwise, we must assume that any of the variables in Figure 1 could overflow any type T we choose.  (If you&#8217;d like to know the answer to this question of overflow without proof, skip ahead to the <a href="#conclusion" title="Jump to conclusion">Conclusion</a>.)</p>
+<p>It&#8217;s fairly easy to establish bounds for <strong>a2</strong> at least. Informally, if <strong>a</strong> and <strong>b</strong> are non-negative, we can recognize that within the loop <br /><strong><code>a2 = a0 - q*a1</code></strong><br />is equivalent to<br /><strong><code>a2 = a0 % a1</code></strong><br />  For this case it&#8217;s easy to see that on every iteration of the loop <strong>a2</strong> will decrease, until it reaches zero, at which point the loop terminates.</p>
+<p>Other areas of potential overflow are harder analyze. Potential overflow could occur for <strong>x2</strong> and <strong>y2</strong>, and also the interim calculations <span style="white-space:nowrap;"><strong>q*a1</strong></span>, <span style="white-space:nowrap;"><strong>q*x1</strong></span>, and <span style="white-space:nowrap;"><strong>q*y1</strong></span>.</p>
+<p>In his second edition book[<a href="#footnote" title="Jump to Sources at end of page">3</a>] Knuth provides an exercise for the reader in which he states two bounds, which he attributes to George E. Collins.  Most likely this refers to Collins&#8217; paper <i>Computing Multiplicative Inverses in GF(p)</i>[<a href="#footnote" title="Jump to Sources at end of page">4</a>].  Collins&#8217; paper is the best source for bounds I&#8217;ve seen for the Extended Euclidean algorithm.  It presents most of the invariants and observations needed to bound the algorithm in a full proof, and states bounds for the variables (though no interim calculation bounds).  It&#8217;s restricted to <span style="white-space:nowrap;"><strong>0 &lt; b &lt; a</strong></span>, and doesn&#8217;t explicitly prove its invariants, but identifying the invariants is the hardest part of this kind of proof.  Collins observes that the following equalities remain invariant throughout all of the algorithm:</p>
+<ol style="margin-top:-19px;margin-bottom:6px;">
+<li>&nbsp;<strong><code>gcd(x0, y0) == 1</code></strong></li>
+<li>&nbsp;<strong><code>gcd(x1, y1) == 1</code></strong></li>
+<li>&nbsp;<strong><code>abs(x0*y1 - y0*x1) == 1</code></strong></li>
+<li>&nbsp;<strong><code>x0*y1 - y0*x1 == -(x1*y2 - y1*x2)</code></strong></li>
+<li>&nbsp;<strong><code>a*x0 + b*y0 == a0</code></strong></li>
+<li>&nbsp;<strong><code>a*x1 + b*y1 == a1</code></strong></li>
+</ol>
+<p>With the precondition <span style="white-space:nowrap;"><strong>0 &lt;= b &lt; a</strong></span>, you can read a proof that these invariants are maintained in <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/extended_euclidean_collins.h">extended_euclidean_collins.h</a>.</p>
+<p>Collins also observes that <strong>x0</strong>, <strong>x1</strong>, and <strong>x2</strong> alternate in sign, as do <strong>y0</strong>, <strong>y1</strong>, and <strong>y2</strong>.  We&#8217;ll need to restate this observation as an invariant in order to use it.  We might try something like <br /><strong><code>(x0 &gt;= 0 ? x1 &lt; 0 : x1 &lt;= 0)</code></strong><br /> initially, but a conditional invariant complicates a proof &#8211; plus it just feels a bit ugly.  We&#8217;ll achieve better success by introducing a sign variable, which we can call <strong>s0</strong>.  Initializing <strong>s0</strong> to <strong>1</strong> before the loop and negating it at the end of each loop iteration, will produce the following change to the C++ code of Figure 1 (solely for the purpose of a proof):</p>
+<pre><code>template &lt;class T&gt;
+void extended_euclidean(const T a, const T b, T* pGcd, T* pX, T* pY)
+{
+   T x0=1, y0=0, a0=a;
+   T x1=0, y1=1, a1=b;
+   T s0 = 1;
+
+   while (a1 != 0) {
+      T q = a0/a1;
+      T a2 = a0 - q*a1;
+      T x2 = x0 - q*x1;
+      T y2 = y0 - q*y1;
+      x0=x1; y0=y1; a0=a1;
+      x1=x2; y1=y2; a1=a2;
+      s0 = -s0;
+   }
+   *pX = x0;
+   *pY = y0;
+   *pGcd = a0;
+}</code></pre>
+<p><i>Figure 2: C++ Extended Euclidean Function With Sign Variable.</i></p>
+<p>We can now write invariants that express the alternating sign of x and y variables:</p>
+<ol start="7" style="margin-top:-19px;">
+<li>&nbsp;<strong><code>abs(s0) == 1</code></strong></li>
+<li>&nbsp;<strong><code>x0 == s0*abs(x0)</code></strong></li>
+<li>&nbsp;<strong><code>x1 == -s0*abs(x1)</code></strong></li>
+<li>&nbsp;<strong><code>y0 == -s0*abs(y0)</code></strong></li>
+<li>&nbsp;<strong><code>y1 == s0*abs(y1)</code></strong></li>
+</ol>
+<p>A sign variable lends itself well to a proof.  It&#8217;s relatively simple, and it can be manipulated with the distributive property.  For example, in <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/extended_euclidean_collins.h">extended_euclidean_collins.h</a> (at annotation 57), the proof takes this assignment from Figure 2:<br />
+<strong><code>y2 = y0 - q*y1</code></strong><br />
+and substitutes the expressions of invariants <strong>10</strong> and <strong>11</strong>:<br />
+<strong><code>y2 == -s0*abs(y0) - q*(s0*abs(y1))</strong></code><br />
+and then uses the distributive property:<br />
+<strong><code>y2 == -s0*(abs(y0) + q*abs(y1))</strong></code></p>
+<h2 id="proof_intro">The (Nearly) Full Proof</h2>
+<p>So long as we require <span style="white-space:nowrap;"><strong>a &gt;= 0</strong></span> and <span style="white-space:nowrap;"><strong>b &gt;= 0</strong></span>, we can prove bounds for the Extended Euclidean algorithm.  We&#8217;ll do it in three parts, and we&#8217;ve already discussed some of the first part &#8211; the case of <span style="white-space:nowrap;"><strong>a &gt; b</strong></span>.  The second part is the case <span style="white-space:nowrap;"><strong>a &lt; b</strong></span>, and the third part is the case <span style="white-space:nowrap;"><strong>a == b</strong></span>.  It would be nice to also consider cases where <strong>a</strong> or <strong>b</strong> could be negative, but I expect the proof&#8217;s size would grow by a factor of two or three.  It&#8217;s convenient instead to restrict the input range to non-negative values, given that even this restriction may be more general than applications need.  For example, the very restricted case of <span style="white-space:nowrap;"><strong>0 &lt; b &lt; a</strong></span> is sufficient to apply the Extended Euclidean algorithm to calculating the multiplicative modular inverse.</p>
+<p>Perhaps someone else will explore the cases where <strong>a</strong> and <strong>b</strong> may be negative.  It&#8217;s worth noting that if a proof includes the negative cases it will still need restrictions.  If we define the constant <span style="white-space:nowrap;"><strong><i>min = std::numeric_limits&lt;T&gt;::min()</i></strong></span>, such a proof would need to restrict <strong>a</strong> and <strong>b</strong> to cases where <span style="white-space:nowrap;"><strong>a &gt; min</strong></span> and <span style="white-space:nowrap;"><strong>b &gt; min</strong></span>.  A simple explanation is that given our definition of <strong>min</strong>, we can see that <span style="white-space:nowrap;"><strong><i>gcd(min, min) == -min</i></strong></span>, yet <span style="white-space:nowrap;"><strong>-min</strong></span> is impossible to represent with type <strong>T</strong>.</p>
+<h2 id="proof_part1">Proof Part 1: a &gt; b</h2>
+<p>For the case <span style="white-space:nowrap;"><strong>a &gt; b</strong></span>, <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/extended_euclidean_collins.h">extended_euclidean_collins.h</a> proves that all variables and interim calculations have specific bounds.  This header file proves a few helper theorems at the top of the header, and then provides the Extended Euclidean function with annotations on every statement and assertion, to form the proof of bounds.  Every bound is given either as a constant or in terms of a variable which is itself bounded.  C asserts are used as much as possible to make the proof testable. There is a <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/CMakeLists.txt">CMake </a> file in the parent directory that will create the full proof&#8217;s test project if you wish to run it.</p>
+<p>Due to the proof&#8217;s length, it&#8217;s convenient to prune everything from the header file but the algorithm statements and the essential assertion results, leaving only the <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/essential_asserts_collins.h">results of the proof</a> for Part 1.  These essential results are the proven bounds assertions and the proven assertions that the outputs are indeed the gcd and the B&eacute;zout coefficients as required by the Extended Euclidean algorithm.</p>
+<h2 id="proof_part2">Proof Part 2: a &lt; b</h2>
+<p>For the case <span style="white-space:nowrap;"><strong>a &lt; b</strong></span>, a <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/helpers/extended_euclidean__a_ge_0__b_gt_a.h">second header file</a> proves that all variables and interim calculations have specific bounds.  The logic of this proof is extremely similar to Part 1, with one large difference: the first iteration of the loop is peeled-out and placed before the loop.  Peeling out the first iteration is required to state some loop invariants that only become valid for case <span style="white-space:nowrap;"><strong>a &lt; b</strong></span> after the second loop iteration begins.</p>
+<p>Similarly to Part 1, it helps to have a <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/helpers/essential_asserts__a_ge_0__b_gt_a.h">pruned header file</a> leaving only the results of the proof.  However for this case of <span style="white-space:nowrap;"><strong>a &lt; b</strong></span>, the proof modified the original Extended Euclidean function by peeling-out the first loop iteration, so this simple pruning also uses that modified function.  Ideally at this point we shouldn&#8217;t be exposed to the modification, since it&#8217;s just an artifact of the proof.  Since we only care about the results of the proof and not the proof itself, we can rejoin the first iteration back into the loop.  This leaves us the much more useful <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/helpers/essential_asserts__a_ge_0__b_gt_a__improved.h">original function with proof results</a> for Part 2.</p>
+<h2 id="proof_part3">Proof Part 3: a == b</h2>
+<p>The only tricky aspect to case <span style="white-space:nowrap;"><strong>a == b</strong></span> is how to define <strong>gcd(0,0)</strong>.  Otherwise, this part consists just of two very short proofs.</p>
+<p>One way <span style="white-space:nowrap;"><strong>d = gcd(a,b)</strong></span> can be defined is that <strong>d</strong> is the integer that divides both <strong>a</strong> and <strong>b</strong>, such that for any integer <strong>c</strong> that divides both <strong>a</strong> and <strong>b</strong>, <span style="white-space:nowrap;"><strong>d &gt;= c</strong></span>.  Under this definition, <strong>gcd(0,0)</strong> would be undefined.  A second way <span style="white-space:nowrap;"><strong>d = gcd(a,b)</strong></span> can be defined is that <strong>d</strong> is the non-negative integer that divides both <strong>a</strong> and <strong>b</strong>, such that for any integer <strong>c</strong> that divides both <strong>a</strong> and <strong>b</strong>, <strong>c</strong> divides <strong>d</strong>.  Under this definition, <span style="white-space:nowrap;"><strong>gcd(0,0) == 0</strong></span>. [<a href="#footnote" title="Jump to Sources at end of page">5</a>]  If a caller of the Extended Euclidean function expects the first definition, calling with <span style="white-space:nowrap;"><strong>a == 0</strong></span> and <span style="white-space:nowrap;"><strong>b == 0</strong></span> would be an implicit precondition violation, since it would be a request for the undefined <strong>gcd(0,0)</strong>.  We will assume that callers will never violate their implicit preconditions, and therefore we assume a caller must expect the second definition if calling with arguments <span style="white-space:nowrap;"><strong>a == 0</strong></span> and <span style="white-space:nowrap;"><strong>b == 0</strong></span>.  If the last reasoning feels unsatisfactory or too fragile, we could simply say that this Extended Euclidean function defines <span style="white-space:nowrap;"><strong>gcd(0,0) == 0</strong></span> (or we could as a precondition explicitly disallow the special case <span style="white-space:nowrap;"><strong>0 == a == b</strong></span>).  Nevertheless the last reasoning is mostly in keeping with how compilers treat undefined behavior.</p>
+<p>There is a very short <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/helpers/extended_euclidean__b_eq_0__b_eq_a.h">header file proof</a> for special case <span style="white-space:nowrap;"><strong>0 == a == b</strong></span>, along with a pruned version containing only the essential <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/helpers/essential_asserts__b_eq_0__b_eq_a.h">proof results</a>.  The more general case <span style="white-space:nowrap;"><strong>0 &lt; a == b</strong></span> also has a <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/helpers/extended_euclidean__b_gt_0__b_eq_a.h">short proof</a>, along with a trimmed version containing only essential <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/helpers/essential_asserts__b_gt_0__b_eq_a.h">proof results</a>.</p>
+<h2 id="proof_combined">Combined Proof Results</h2>
+<p>Combining the proof results for all three cases, we have general <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/essential_asserts_combined.h">proof results</a> for the Extended Euclidean algorithm, reproduced below.  As before, the bounds are given in terms of constants and other bounded variables (the next section expresses all bounds in terms of the input parameters <strong>a</strong> and <strong>b</strong>).</p>
+<pre><code>template &lt;class T&gt;
+void extended_euclidean_results(const T a, const T b, T* pGcd, T* pX, T* pY)
+{
+   static_assert(std::numeric_limits&lt;T&gt;::is_integer, "");
+   static_assert(std::numeric_limits&lt;T&gt;::is_signed, "");
+   assert(a &gt;= 0 &amp;&amp; b &gt;= 0);   // preconditions
+   T x0 = 1, y0 = 0, a0 = a;
+   T x1 = 0, y1 = 1, a1 = b;
+
+   while (a1 != 0) {
+      T q = a0/a1;
+         assert(0 &lt;= q &amp;&amp; q &lt;= a0);
+      T a2 = a0 - q*a1;
+         assert(0 &lt;= (q*a1) &amp;&amp; (q*a1) &lt;= a0);
+         assert(0 &lt;= a2 &amp;&amp; a2 &lt; a1);
+         if (a2 != 0) assert(q &lt;= a0/2);
+      T x2 = x0 - q*x1;
+         assert(abs(q*x1) &lt;= abs(x2));
+         assert(abs(x1) &lt;= abs(x2));
+      T y2 = y0 - q*y1;
+         assert(abs(q*y1) &lt;= abs(y2));
+         assert(y1 == 1 || abs(y1) &lt;= abs(y2));
+      x0=x1; y0=y1; a0=a1;
+      x1=x2; y1=y2; a1=a2;
+   }
+      if (a == 0 &amp;&amp; b == 0) {
+         assert(x1 == 0);
+         assert(y1 == 1);
+         assert(x0 == 1);
+         assert(y0 == 0);
+      } else {
+         assert(gcd(a,b) &gt;= 1);
+         assert(abs(x1) == b/gcd(a,b));
+         assert(abs(y1) == a/gcd(a,b));
+         assert(x0 == 1 || abs(x0) &lt;= (b/gcd(a,b))/2);
+         assert(y0 == 1 || abs(y0) &lt;= (a/gcd(a,b))/2);
+      }
+      assert(a0 == gcd(a,b));
+      assert(a*x0 + b*y0 == gcd(a,b));
+   *pX = x0;
+   *pY = y0;
+   *pGcd = a0;
+}</code></pre>
+<p><i>Figure 3: Combined Proof Results, C++ Extended Euclidean Function.</i></p>
+<p>It&#8217;s worthwhile noting that the combined results show that at the end of the algorithm, all three parts of the proof achieved <span style="white-space:nowrap;"><strong>a0 == gcd(a,b)</strong></span>, and <span style="white-space:nowrap;"><strong>a*x0 + b*y0 == gcd(a,b)</strong></span> (showing that the final values of <strong>x0</strong> and <strong>y0</strong> are B&eacute;zout coefficients).  These two assertions may be incidental to the proof of bounds, but they are important because they show that the algorithm remained valid for all three cases we considered.</p>
+<h2 id="final_bounds">Final Bounds</h2>
+<p>What we&#8217;d like best is if we could bound all variables and calculations in terms of constant values. We can can come very close to doing this.  We can bound all variables and calculations in terms of the two input parameters <strong>a</strong> and <strong>b</strong>, which remain constant throughout the algorithm.</p>
+<p>We&#8217;ll use two steps to get the desired bounds, starting with the results from Figure 3.</p>
+<p>For the first step we replace the somewhat complicated if/else clause at the end of Figure 3 with simple assertions, and improve the bounds for <strong>a2</strong>, <strong>q</strong>, and <strong>(q*a1)</strong>, showing that all throughout the algorithm they remain less than or equal to <strong>max(a,b)</strong>.  We can form the <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/final_bounds/improved_bounds.h">proof with these improvements</a>, and then prune it as usual to leave only the <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/final_bounds/essential_asserts_improved.h">essential assertion results</a>.</p>
+<p>For the second step we continue on from the assertion results of the first step, though by using a different proof technique from any previous discussions.  Our method will be to start at the very end of the function and work our way backward. We can observe that at the <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/final_bounds/essential_asserts_improved.h">end of the first step&#8217;s results</a>, the final values for <strong>x0</strong>, <strong>x1</strong>, <strong>y0</strong>, and <strong>y1</strong> are all bounded in terms of the input parameters <strong>a</strong> and <strong>b</strong>.  We can propagate those bounds backward for all variables and calculations in the algorithm, by working our way backward through the loop iterations.</p>
+<p>For example, consider <strong>x1</strong> at the end of the first step results.  We can see that at the function end,<br />
+<strong><code>abs(x1) &lt;= b</code></strong><br />
+Reasoning backward to the final loop iteration and working from the end of that iteration, we see the reassignment <strong>x1=x2</strong>, so we can reason that prior to that reassignment, it must have been true that<br />
+<strong><code>abs(x2) &lt;= b</code></strong><br />
+A few lines earlier in the loop, we see the calculation<br />
+<strong><code>T x2 = x0 - q*x1;</code></strong><br />
+Since we already reasoned that <strong><code>abs(x2) &lt;= b</code></strong>, we know that this calculation must have produced an absolute value for <strong>x2</strong> that was bounded by <strong>b</strong>.  Continuing to work backward to the second to last loop iteration (if the loop is taken at least twice), we can use similar reasoning to again bound <strong>x2</strong> for that loop iteration.  Continuing to work backward through all remaining iterations bounds <strong>x2</strong> for all iterations.</p>
+<p>This method is used in the <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/final_bounds/final_bounds.h">final proof</a> to bound all variables and calculations in terms of the input parameters <strong>a</strong> and <strong>b</strong>.  Pruning this proof to leave only the basic algorithm and bounds assertions, we have our <a href="https://github.com/hurchalla/proofs/blob/master/extended_euclidean_bounds/final_bounds/essential_asserts_final.h">final desired result</a>, reproduced here:</p>
+<pre><code>template &lt;class T&gt;
+void extended_euclidean_final(const T a, const T b, T* pGcd, T* pX, T* pY)
+{
+   static_assert(std::numeric_limits&lt;T&gt;::is_integer, "");
+   static_assert(std::numeric_limits&lt;T&gt;::is_signed, "");
+   assert(a &gt;= 0 &amp;&amp; b &gt;= 0);   // precondition
+   T x0 = 1, y0 = 0, a0 = a;
+   T x1 = 0, y1 = 1, a1 = b;
+
+   while (a1 != 0) {
+      T q = a0/a1;
+         assert(0 &lt;= q &amp;&amp; q &lt;= max(a,b));
+      T a2 = a0 - q*a1;
+         assert(0 &lt;= (q*a1) &amp;&amp; (q*a1) &lt;= max(a,b));
+         assert(0 &lt;= a2 &amp;&amp; a2 &lt; max(a,b));
+         if (a2 != 0) assert(q &lt;= max(a,b)/2);
+      T x2 = x0 - q*x1;
+         assert(abs(q*x1) &lt;= b);
+         assert(abs(x2) &lt;= b);
+         if (a2 != 0) assert(abs(q*x1) &lt;= max(1,b/2));
+         if (a2 != 0) assert(abs(x2) &lt;= max(1,b/2));
+      T y2 = y0 - q*y1;
+         assert(abs(q*y1) &lt;= max(1,a));
+         assert(abs(y2) &lt;= max(1,a));
+         if (a2 != 0) assert(abs(q*y1) &lt;= max(1,a/2));
+         if (a2 != 0) assert(abs(y2) &lt;= max(1,a/2));
+
+      x0=x1; y0=y1; a0=a1;
+      x1=x2; y1=y2; a1=a2;
+   }
+      assert(a0 == gcd(a,b));
+      assert(a*x0 + b*y0 == gcd(a,b));
+   *pX = x0;
+   *pY = y0;
+   *pGcd = a0;
+}</code></pre>
+<p><i>Figure 4: Final Bounds in Terms of the Inputs, C++ Extended Euclidean Function.</i></p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Distilling the final proof results, we can see that all the variables and calculations in the Extended Euclidean algorithm are bounded to finite maximum and minimum values.  More specifically, throughout every loop iteration, the variables and calculations of the algorithm (as expressed in Figure 1) have these following bounds:</p>
+<p><strong><code>0 &lt;= q &lt;= max(a,b)</strong></code><br />
+<strong><code>0 &lt;= (q*a1) &lt;= max(a,b)</strong></code><br />
+<strong><code>0 &lt;= a2 &lt; max(a,b)</strong></code><br />
+<strong><code>abs(q*x1) &lt;= b</strong></code><br />
+<strong><code>abs(x2) &lt;= b</strong></code><br />
+<strong><code>abs(q*y1) &lt;= max(1,a)</strong></code><br />
+<strong><code>abs(y2) &lt;= max(1,a)</strong></code></p>
+<p>And for every loop iteration other than the final iteration (when a2 == 0), a subset of those variables and calculations have these following even tighter bounds:</p>
+<p><strong><code>0 &lt;= q &lt;= max(a,b)/2</strong></code><br />
+<strong><code>abs(q*x1) &lt;= max(1,b/2)</strong></code><br />
+<strong><code>abs(x2) &lt;= max(1,b/2)</strong></code><br />
+<strong><code>abs(q*y1) &lt;= max(1,a/2)</strong></code><br />
+<strong><code>abs(y2) &lt;= max(1,a/2)</strong></code></p>
+<p style="padding-top:2px;">
+<h2 id="footnote">Sources</h2>
+<p>1. Donald Knuth, The Art of Computer Programming, Volume 2 (3rd ed.): Seminumerical Algorithms (Boston: Addison-Wesley Professional, 1997), p.335.<br />
+2. Donald Knuth, The Art of Computer Programming, Volume 1 (3rd ed.): Fundamental Algorithms (Redwood City: Addison-Wesley Professional, 1997), pp.13-15.<br />
+3. Donald Knuth, The Art of Computer Programming, Volume 2 (2nd ed.): Seminumerical Algorithms (Reading: Addison-Wesley, 1981), p.595 (answer 14).<br />
+4. George E. Collins, <a href="http://www.ams.org/journals/mcom/1969-23-105/S0025-5718-1969-0242345-5/S0025-5718-1969-0242345-5.pdf">Computing multiplicative inverses in GF(<i>p</i>)</a>, Mathematics of Computation Vol. 23 (1969), pp. 197-200.<br />
+5. <a href="https://math.stackexchange.com/a/495457">https://math.stackexchange.com/a/495457</a></p>
+							</div><!-- .entry-content -->
+	
