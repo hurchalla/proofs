@@ -20,6 +20,9 @@ int main(int argc, char *argv[])
 
    using T = int64_t;
    
+   static_assert(std::numeric_limits<T>::is_integer, "");
+   static_assert(std::numeric_limits<T>::is_signed, "");
+   
    T a = 5;
    T b = 7;
    T gcd, x, y;
@@ -35,7 +38,9 @@ int main(int argc, char *argv[])
 
 
    // test large combinations of a and b where a and b are very large or small
-   T max = 65536;
+   constexpr int64_t maxTmp = 65535;
+   static_assert(std::numeric_limits<T>::max() >= maxTmp, "");
+   T max = maxTmp;
 
    for (T a = 0; a < 5; ++a) {
 	   for (T b = max; b >= 0; --b)

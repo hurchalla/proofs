@@ -1,0 +1,216 @@
+<h2 class="entry-title"><a href="https://jeffhurchalla.com/2018/10/13/implementing-the-extended-euclidean-algorithm-with-unsigned-inputs/" rel="bookmark">Implementing the Extended Euclidean Algorithm with Unsigned Inputs</a></h2>
+<div class="entry-content">
+                <p>[This is a BACKUP COPY of a <a href="https://jeffhurchalla.com/2018/10/13/implementing-the-extended-euclidean-algorithm-with-unsigned-inputs/">blog entry</a>!  Please read <a href="https://jeffhurchalla.com/2018/10/13/implementing-the-extended-euclidean-algorithm-with-unsigned-inputs/">the blog entry</a> instead, since it will be up to date and use the proper formatting.]
+
+						<p>As the <a href="https://jeffhurchalla.com/2018/10/09/analysis-of-bounds-in-the-extended-euclidean-algorithm/">previous post</a> showed, it&#8217;s possible to correctly implement the <a href="https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm">Extended Euclidean Algorithm</a> using one signed integral type for all input parameters, intermediate variables, and output variables.  None of the calculations will overflow.  The implementation was given as follows:</p>
+<pre><code>template &lt;class T&gt;
+void extended_euclidean(const T a, const T b, T* pGcd, T* pX, T* pY)
+{
+   static_assert(std::numeric_limits&lt;T&gt;::is_integer, "");
+   static_assert(std::numeric_limits&lt;T&gt;::is_signed, "");
+   assert(a &gt;= 0 &amp;&amp; b &gt;= 0);   // precondition
+   T x0=1, y0=0, a0=a;
+   T x1=0, y1=1, a1=b;
+
+   while (a1 != 0) {
+      T q = a0/a1;
+      T a2 = a0 - q*a1;
+      T x2 = x0 - q*x1;
+      T y2 = y0 - q*y1;
+      x0=x1; y0=y1; a0=a1;
+      x1=x2; y1=y2; a1=a2;
+   }
+   *pX = x0;
+   *pY = y0;
+   *pGcd = a0;
+}</code></pre>
+<p><i>Figure 1: C++ Extended Euclidean Function, Signed Integer Inputs.</i></p>
+<p>The precondition <span style="white-space:nowrap;"><strong>a &gt;= 0 &amp;&amp; b &gt;= 0</strong></span> is required because the proof from the last post didn&#8217;t consider any cases where <strong>a</strong> or <strong>b</strong> was negative.  I haven&#8217;t investigated whether the Extended Euclidean algorithm might be valid for any and all cases of negative inputs, so I won&#8217;t speculate about what might be possible for those cases.  Instead let&#8217;s focus on the proven case <span style="white-space:nowrap;"><strong>a &gt;= 0 &amp;&amp; b &gt;= 0</strong></span>.</p>
+<p>It seems a bit wasteful to use signed integers for inputs <strong>a</strong> and <strong>b</strong> when the function precondition disallows <strong>a</strong> and <strong>b</strong> from ever being negative.  Why not just use unsigned integer inputs that have the same precision as the signed integer inputs would have had?  The one potential problem with doing this is that when we look at the bounds, it&#8217;s not quite as obvious as the all-signed case that overflow can&#8217;t occur.  Displaying the <a href="https://jeffhurchalla.com/2018/10/09/analysis-of-bounds-in-the-extended-euclidean-algorithm/">bounds proven in the last post</a>, throughout every loop iteration in Figure 1 we know the following:<br />
+<strong><code>0 &lt;= q &lt;= max(a,b)</strong></code><br />
+<strong><code>0 &lt;= (q*a1) &lt;= max(a,b)</strong></code><br />
+<strong><code>0 &lt;= a2 &lt; max(a,b)</strong></code><br />
+<strong><code>abs(q*x1) &lt;= b</strong></code><br />
+<strong><code>abs(x2) &lt;= b</strong></code><br />
+<strong><code>abs(q*y1) &lt;= max(1,a)</strong></code><br />
+<strong><code>abs(y2) &lt;= max(1,a)</strong></code></p>
+<p>Assuming we go ahead and change the type for inputs <strong>a</strong> and <strong>b</strong> to be unsigned, it should be immediately clear from the bounds and Figure 1 that in order to avoid overflow, <strong>q</strong>, <strong>a2</strong>, <strong>a1</strong>, <strong>a0</strong>, and <strong>*pGcd</strong> will all need to be changed to use the same unsigned integer type as the input parameters.</p>
+<p>More problematic are <strong>x2</strong> and <strong>y2</strong> (and likewise <strong>x1</strong>, <strong>y1</strong>, <strong>x0</strong>, <strong>y0</strong>, <strong>*pX</strong>, and <strong>*pY</strong>).  On the one hand, these variables need to remain signed types since the bounds above don&#8217;t restrict them from taking on negative values.  But on the other hand, the bounds above allow them to be as large as <strong>a</strong> or <strong>b</strong>, and since <strong>a</strong> and <strong>b</strong> are now unsigned types, the largest possible value for <strong>a</strong> or <strong>b</strong> would overflow the corresponding signed type.  Fortunately we can resolve this conflict, by using less generally applicable but tighter bounds for these variables.  Let&#8217;s review the second set of <a href="https://jeffhurchalla.com/2018/10/09/analysis-of-bounds-in-the-extended-euclidean-algorithm/"> proven bounds from the last post</a>.  For every loop iteration other than the final iteration (when <strong>a2</strong> == 0), we know the following tighter bounds hold:<br />
+<strong><code>0 &lt;= q &lt;= max(a,b)/2</strong></code><br />
+<strong><code>abs(q*x1) &lt;= max(1,b/2)</strong></code><br />
+<strong><code>abs(x2) &lt;= max(1,b/2)</strong></code><br />
+<strong><code>abs(q*y1) &lt;= max(1,a/2)</strong></code><br />
+<strong><code>abs(y2) &lt;= max(1,a/2)</strong></code></p>
+<p>Superficially, it seems like these bounds should be enough to guarantee we can use signed types for <strong>x2</strong> and <strong>y2</strong> without any problems.  The only loop iteration where they could overflow is the final iteration, and their values don&#8217;t affect anything on the last iteration, so seemingly overflow (if it happened) would be fine at that point.  But in truth it&#8217;s a bad problem, because overflow of a signed integral type is undefined behavior in C and C++.  Upon overflow on the last iteration, a reasonable possibly is everything would be okay, but another reasonable possibility is a trap would occur that crashes the program.  Anything is allowed after invoking undefined behavior, so in the end it&#8217;s hopeless to try to reason about whether the program would be okay.</p>
+<p>Since we can not allow undefined behavior, we must ensure signed integer overflow is completely impossible in the function.  Fortunately this is easy.  We can simply test if we are in the final loop iteration (by checking if <strong>a1</strong> == 0), and break out if so.  Most of the work in the final iteration is irrelevant since it&#8217;s never used later.  The only exception is the reassignments (<strong>x0=x1; y0=y1; a0=a1</strong>), which still need to be done before causing a break.</p>
+<p>Incorporating all the discussed changes, we get the following <i>potential</i> implementation:</p>
+<pre><code>template &lt;class S, class U&gt;
+void extended_euclidean(const U a, const U b, U* pGcd, S* pX, S* pY)
+{
+   static_assert(std::numeric_limits&lt;S&gt;::is_integer, "");
+   static_assert(std::numeric_limits&lt;S&gt;::is_signed, "");
+   static_assert(std::numeric_limits&lt;U&gt;::is_integer, "");
+   static_assert(!(std::numeric_limits&lt;U&gt;::is_signed), "");
+   static_assert(std::is_same&lt;std::make_signed&lt;U&gt;::type, S&gt;::value, "");
+   S x0=1, y0=0;
+   U a0=a;
+   S x1=0, y1=1;
+   U a1=b;
+
+   while (a1 != 0) {
+      U q = a0/a1;
+      U a2 = a0 - q*a1;
+      if (a2 == 0) {
+         x0=x1; y0=y1; a0=a1;
+         break;
+      }
+      S x2 = x0 - q*x1;
+      S y2 = y0 - q*y1;
+      x0=x1; y0=y1; a0=a1;
+      x1=x2; y1=y2; a1=a2;
+   }
+   *pX = x0;
+   *pY = y0;
+   *pGcd = a0;
+}</code></pre>
+<p><i>Figure 2: Potential (But Broken) Implementation, Unsigned Integer Inputs.</i></p>
+<p>But there&#8217;s still a problem.  We determined that <strong>q</strong> must be unsigned and <strong>x1</strong> must be signed, and Figure 2 reflects this.  Therefore during the calculation in Figure 2 of <strong>(q*x1)</strong>, the compiler will implicitly convert <strong>x1</strong> to the unsigned type of <strong>q</strong> in order to carry out the calculation.  Quoting from the C++17 standard section 8 [expr] (11.5.3):<br />
+<i>&#8220;Many binary operators that expect operands of arithmetic type cause conversions&#8230; The following rules shall be applied&#8230; if the operand that has unsigned integer type has rank equal to the rank of the type of the other operand, the operand with signed integer type shall be converted to the type of the operand with unsigned integer type.&#8221;</i><br />
+[The C standard specifies very similar behavior.]  The problem is we didn&#8217;t want to convert <strong>x1</strong> to unsigned.  And even putting that aside, the conversion causes further conversions which can eventually result in implementation defined behavior.  What we really wanted and intended is to convert <strong>q</strong> from unsigned to signed, which we can do with an explicit cast.</p>
+<p>Explicitly casting <strong>q</strong> to signed integral type works well in the code of Figure 2.  We know from the tight bounds given above that on every loop iteration except the final iteration,<br />
+<strong><code>0 &lt;= q &lt;= max(a,b)/2</strong></code><br />
+Figure 2 has a break on the last loop iteration before it gets to the calculations (<strong>q*x1</strong> and <strong>q*y1</strong>) which would require type conversion of <strong>q</strong> to signed integral.  So the conversions will never be performed on the final loop iteration, and therefore no conversion of <strong>q</strong> will ever overflow the signed result type.</p>
+<p>Incorporating the explicit casts of <strong>q</strong>, we get the following implementation:</p>
+<pre><code>template &lt;class S, class U&gt;
+void extended_euclidean(const U a, const U b, U* pGcd, S* pX, S* pY)
+{
+   static_assert(std::numeric_limits&lt;S&gt;::is_integer, "");
+   static_assert(std::numeric_limits&lt;S&gt;::is_signed, "");
+   static_assert(std::numeric_limits&lt;U&gt;::is_integer, "");
+   static_assert(!(std::numeric_limits&lt;U&gt;::is_signed), "");
+   static_assert(std::is_same&lt;std::make_signed&lt;U&gt;::type, S&gt;::value, "");
+   S x0=1, y0=0;
+   U a0=a;
+   S x1=0, y1=1;
+   U a1=b;
+
+   while (a1 != 0) {
+      U q = a0/a1;
+      U a2 = a0 - q*a1;
+      if (a2 == 0) {
+         x0=x1; y0=y1; a0=a1;
+         break;
+      }
+      S x2 = x0 - static_cast&lt;S&gt;(q)*x1;
+      S y2 = y0 - static_cast&lt;S&gt;(q)*y1;
+      x0=x1; y0=y1; a0=a1;
+      x1=x2; y1=y2; a1=a2;
+   }
+   *pX = x0;
+   *pY = y0;
+   *pGcd = a0;
+}</code></pre>
+<p><i>Figure 3: Correct Implementation, Unsigned Integer Inputs.</i></p>
+<p>This implementation in Figure 3 is correct, but the conditional branch inside the loop isn&#8217;t ideal from a performance standpoint.  It would be nice if we could remove the conditional branch.  Indeed we can, by re-arranging the code.</p>
+<h2>Optimized Implementation</h2>
+<p>We&#8217;ll remove the conditional branch inside the loop of Figure 3 by rotating statements from the bottom of the loop to the top of the loop.  Each rotation will require changing the code that precedes and follows the loop (and sometimes the loop condition too), so that the meaning of the function stays the same.  Aside from the rotation, nothing inside the loop should change.  The end goal of the rotations is to get the position of the nested conditional branch to be at the end of the loop, so that we can merge it into the loop condition.</p>
+<p>Let&#8217;s first rotate the reassignments from the end of the loop in Figure 3 to the top of the loop.  [If this description is hard to follow, it may help to compare Figure 3 with Figure 4.]  The rotation affects the code after the loop, since <strong>x0</strong>, <strong>y0</strong>, and <strong>a0</strong> won&#8217;t be reassigned upon the end of the final loop iteration.  So to compensate, <strong>*pX</strong>, <strong>*pY</strong>, and <strong>*pGcd</strong> will now need to be set to the values of <strong>x1</strong>, <strong>y1</strong>, and <strong>a1</strong>.  This change to <strong>*pX</strong>, <strong>*pY</strong>, and <strong>*pGcd</strong> will need to also be valid if the loop is never taken at all, so we&#8217;ll need to change the initial values of <strong>x1</strong>, <strong>y1</strong>, and <strong>a1</strong> to the initial values in Figure 3 given to <strong>x0</strong>, <strong>y0</strong>, and <strong>a0</strong>.  Fortunately, since we will have already done the rotation that places the loop reassignments at the top of the loop, this last change also ensures the correct values will get reassigned upon the first entry to the loop.  At least in part.  We haven&#8217;t discussed a second part of the effect of having the reassignments at the top of the loop: the reassignments use <strong>x2</strong>, <strong>y2</strong>, and <strong>a2</strong>, which are variables that haven&#8217;t been declared or initialized yet.  We&#8217;ll fix this by adding declarations and initializations to the start of the function for <strong>x2</strong>, <strong>y2</strong>, and <strong>a2</strong>, setting them to the initial values that had formerly been given to <strong>x1</strong>, <strong>y1</strong>, and <strong>a1</strong> in Figure 3.  As a result, upon first entry of the loop, the reassignments at the top of the loop will re-set the correct initial values, leaving the meaning of the function unchanged.</p>
+<p>There&#8217;s one last detail.  We&#8217;ll need to change the loop condition to refer to <strong>a2</strong> instead of <strong>a1</strong>, again due to the rotation of the reassignment statements.  Since we&#8217;ll have already declared and initialized <strong>a2</strong> at the top of the function (to the initial value formerly used in Figure 3 by <strong>a1</strong>), this preserve the meaning of the function perfectly.</p>
+<p>It&#8217;s easiest to see all this in actual code.  By rotating the loop&#8217;s reassignments in Figure 3, we&#8217;ll have changed the implementation to the following code:</p>
+<pre><code>template &lt;class S, class U&gt;
+void extended_euclidean(const U a, const U b, U* pGcd, S* pX, S* pY)
+{
+   static_assert(std::numeric_limits&lt;S&gt;::is_integer, "");
+   static_assert(std::numeric_limits&lt;S&gt;::is_signed, "");
+   static_assert(std::numeric_limits&lt;U&gt;::is_integer, "");
+   static_assert(!(std::numeric_limits&lt;U&gt;::is_signed), "");
+   static_assert(std::is_same&lt;std::make_signed&lt;U&gt;::type, S&gt;::value, "");
+   S x1=1, y1=0;
+   U a1=a;
+   S x2=0, y2=1;
+   U a2=b;
+
+   while (a2 != 0) {
+      S x0=x1;
+      S y0=y1;
+      U a0=a1;
+      x1=x2; y1=y2; a1=a2;
+
+      U q = a0/a1;
+      a2 = a0 - q*a1;
+      if (a2 == 0)
+         break;
+      x2 = x0 - static_cast&lt;S&gt;(q)*x1;
+      y2 = y0 - static_cast&lt;S&gt;(q)*y1;
+   }
+   *pX = x1;
+   *pY = y1;
+   *pGcd = a1;
+}</code></pre>
+<p><i>Figure 4: Optimization Step 1, Unsigned Integer Inputs.</i></p>
+<p>We haven&#8217;t yet removed the conditional branch inside the loop, but we&#8217;re closer to the goal.  We still need to rotate the calculations of <strong>x2</strong> and <strong>y2</strong> from the bottom of the loop to the top, and again fix the code before and after the loop to preserve the meaning of the function.  As it turns out, there&#8217;s no need to change any code after the function.  But now that the calculations are at the top of the loop, the variable <strong>q</strong> gets used before it has been declared or initialized.  In order to preserve the meaning of the function, we&#8217;ll need to add a declaration and initialization of <strong>q</strong> at the start of the function.  Initializing <strong>q</strong> to zero works quite well.  On the first entry of the loop, the calculations of <strong>x2</strong> and <strong>y2</strong> will thereby contain a multiplication by zero (since <strong>q</strong> == 0), effectively reducing those calculations on the first iteration to reassignments from <strong>x0</strong> and <strong>y0</strong>.  This means we&#8217;ll need to add to the start of the function declarations and initializations for <strong>x0</strong> and <strong>y0</strong>, setting them to the initial values that Figure 4 had used for <strong>x2</strong> and <strong>y2</strong>.</p>
+<p>After making these changes to Figure 4, we have the following code:</p>
+<pre><code>template &lt;class S, class U&gt;
+void extended_euclidean(const U a, const U b, U* pGcd, S* pX, S* pY)
+{
+   static_assert(std::numeric_limits&lt;S&gt;::is_integer, "");
+   static_assert(std::numeric_limits&lt;S&gt;::is_signed, "");
+   static_assert(std::numeric_limits&lt;U&gt;::is_integer, "");
+   static_assert(!(std::numeric_limits&lt;U&gt;::is_signed), "");
+   static_assert(std::is_same&lt;std::make_signed&lt;U&gt;::type, S&gt;::value, "");
+   S x1=1, y1=0;
+   U a1=a;
+   S x0=0, y0=1;
+   U a2=b;
+   U q=0;
+
+   while (a2 != 0) {
+      S x2 = x0 - static_cast&lt;S&gt;(q)*x1;
+      S y2 = y0 - static_cast&lt;S&gt;(q)*y1;
+      x0=x1;
+      y0=y1;
+      U a0=a1;
+      x1=x2; y1=y2; a1=a2;
+
+      q = a0/a1;
+      a2 = a0 - q*a1;
+      if (a2 == 0)
+         break;
+   }
+   *pX = x1;
+   *pY = y1;
+   *pGcd = a1;
+}</code></pre>
+<p><i>Figure 5: Optimization Step 2, Unsigned Integer Inputs.</i></p>
+<p>We can now get rid of the conditional branch at the end of the function, since it&#8217;s redundant.  Making this change and cleaning up the code a little, we get the following optimized function for the Extended Euclidean Algorithm with unsigned integer inputs:</p>
+<pre><code>template &lt;class S, class U&gt;
+void extended_euclidean(const U a, const U b, U* pGcd, S* pX, S* pY)
+{
+   static_assert(std::numeric_limits&lt;S&gt;::is_integer, "");
+   static_assert(std::numeric_limits&lt;S&gt;::is_signed, "");
+   static_assert(std::numeric_limits&lt;U&gt;::is_integer, "");
+   static_assert(!(std::numeric_limits&lt;U&gt;::is_signed), "");
+   static_assert(std::is_same&lt;std::make_signed&lt;U&gt;::type, S&gt;::value, "");
+   S x1=1, y1=0;
+   U a1=a;
+   S x0=0, y0=1;
+   U a2=b, q=0;
+
+   while (a2 != 0) {
+      S x2 = x0 - static_cast&lt;S&gt;(q)*x1;
+      S y2 = y0 - static_cast&lt;S&gt;(q)*y1;
+      x0=x1; y0=y1;
+      U a0=a1;
+      x1=x2; y1=y2; a1=a2;
+
+      q = a0/a1;
+      a2 = a0 - q*a1;
+   }
+   *pX = x1;
+   *pY = y1;
+   *pGcd = a1;
+}</code></pre>
+<p><i>Figure 6: Optimized Implementation, Unsigned Integer Inputs.</i></p>
+<h2>Conclusion</h2>
+<p>The Extended Euclidean algorithm can be correctly and very efficiently implemented using unsigned integer inputs and signed integer outputs, so long as all the function parameters have the same precision.  Figure 6 provides the optimized implementation.  I suspect this implementation could also be used as the more typical signed integer version of the algorithm (after changing all the types to signed), though I haven&#8217;t investigated.  For the function of Figure 6 there is a header file with the complete implementation, and a test project that you can run.</p>
+</div>
