@@ -10,15 +10,15 @@
 template <typename T>
 T gcd(T a, T b)
 {
-	static_assert(std::numeric_limits<T>::is_integer, "");
-	static_assert(std::numeric_limits<T>::is_signed, "");
+    static_assert(std::numeric_limits<T>::is_integer, "");
+    static_assert(std::numeric_limits<T>::is_signed, "");
 
-	while (b != 0) {
-		T tmp = b;
-		b = a % b;
-		a = tmp;
-	}
-	return (a >= 0) ? a : -a;
+    while (b != 0) {
+        T tmp = b;
+        b = a % b;
+        a = tmp;
+    }
+    return (a >= 0) ? a : -a;
 }
 
 #endif

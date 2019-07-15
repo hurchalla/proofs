@@ -26,7 +26,7 @@
 template <typename T>
 void improved_bounds(T a, T b, T* pGcd, T* pX, T* pY)
 {
-	   const auto max = static_cast<const T&(*)(const T&, const T&)>(std::max);
+       const auto max = static_cast<const T&(*)(const T&, const T&)>(std::max);
        static_assert(std::numeric_limits<T>::is_integer, "");
        static_assert(std::numeric_limits<T>::is_signed, "");
 /*01*/ assert_precondition(a >= 0 && b >= 0);

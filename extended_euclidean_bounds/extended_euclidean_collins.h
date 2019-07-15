@@ -80,8 +80,8 @@
 template <typename T>
 void extended_euclidean_collins(T a, T b, T* pGcd, T* pX, T* pY)
 {
-	    static_assert(std::numeric_limits<T>::is_integer, "");
-	    static_assert(std::numeric_limits<T>::is_signed, "");
+        static_assert(std::numeric_limits<T>::is_integer, "");
+        static_assert(std::numeric_limits<T>::is_signed, "");
 /*01*/     assert_precondition(b >= 0);
 /*02*/     assert_precondition(b < a);
 /*03*/  T x0 = 1;
@@ -360,6 +360,10 @@ void extended_euclidean_collins(T a, T b, T* pGcd, T* pX, T* pY)
            // a*x0 + b*y0 == a0 == gcd(a,b)
            // Note: Since a*x0 + b*y0 == gcd(a,b), we know x0 and y0 are the
            // Bezout coefficients.
+
+/*N0*/     assert_invariant(s0*abs(x0) == x0);        // By [22, 89]
+/*N1*/     assert_invariant(-s0*abs(y0) == y0);       // By [24, 91]
+
         *pX = x0;
         *pY = y0;
         *pGcd = a0;

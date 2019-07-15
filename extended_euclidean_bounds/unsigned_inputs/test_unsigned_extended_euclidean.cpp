@@ -50,8 +50,8 @@ int exhaustive_tests()
    static_assert(std::numeric_limits<U>::max() >= 255, "");
    static_assert(std::numeric_limits<T>::max() >= 255, "");
    for (U a = 0;; ++a) {
-	   for (U b = 0;; ++b) {
-		   if (0 != test_unsigned<S, U, T>(a, b))
+       for (U b = 0;; ++b) {
+           if (0 != test_unsigned<S, U, T>(a, b))
                return 1;
            if (b == 255)
                break;
@@ -76,13 +76,13 @@ int large_combination_tests()
    static_assert(std::numeric_limits<T>::max() >= max, "");
 
    for (uint64_t a = 0; a < 5; ++a) {
-	   for (uint64_t b = 0; b <= max; ++b)
-		   if (0 != test_unsigned<S, U, T>(static_cast<U>(a), static_cast<U>(b)))
+       for (uint64_t b = 0; b <= max; ++b)
+           if (0 != test_unsigned<S, U, T>(static_cast<U>(a),static_cast<U>(b)))
                return 1;
    }
    for (uint64_t a = max - 5; a <= max; ++a) {
-	   for (uint64_t b = 0; b <= max; ++b)
-		   if (0 != test_unsigned<S, U, T>(static_cast<U>(a), static_cast<U>(b)))
+       for (uint64_t b = 0; b <= max; ++b)
+           if (0 != test_unsigned<S, U, T>(static_cast<U>(a),static_cast<U>(b)))
                return 1;
    }
    uint64_t a = max / 2;
@@ -92,13 +92,13 @@ int large_combination_tests()
 
 
    for (uint64_t a = 0; a <= max; ++a) {
-	   for (uint64_t b = 0; b < 5; ++b)
-		   if (0 != test_unsigned<S, U, T>(static_cast<U>(a), static_cast<U>(b)))
+       for (uint64_t b = 0; b < 5; ++b)
+           if (0 != test_unsigned<S, U, T>(static_cast<U>(a),static_cast<U>(b)))
                return 1;
    }
    for (uint64_t a = 0; a <= max; ++a) {
-	   for (uint64_t b = max - 5; b <= max; ++b)
-		   if (0 != test_unsigned<S, U, T>(static_cast<U>(a), static_cast<U>(b)))
+       for (uint64_t b = max - 5; b <= max; ++b)
+           if (0 != test_unsigned<S, U, T>(static_cast<U>(a),static_cast<U>(b)))
                return 1;
    }
    uint64_t b = max / 2;
@@ -124,12 +124,12 @@ int extreme_values_tests()
 
    // test combinations of a and b where a and b are extremely large or small
    for (uint64_t a = 0; a < 5; ++a)
-	   for (uint64_t b = max - 5; b <= max; ++b)
-           if (0 != test_unsigned<S, U, T>(static_cast<U>(a), static_cast<U>(b)))
+       for (uint64_t b = max - 5; b <= max; ++b)
+           if (0 != test_unsigned<S, U, T>(static_cast<U>(a),static_cast<U>(b)))
                return 1;
    for (uint64_t a = max - 5; a <= max; ++a)
-	   for (uint64_t b = max - 5; b <= max; ++b)
-           if (0 != test_unsigned<S, U, T>(static_cast<U>(a), static_cast<U>(b)))
+       for (uint64_t b = max - 5; b <= max; ++b)
+           if (0 != test_unsigned<S, U, T>(static_cast<U>(a),static_cast<U>(b)))
                return 1;
    uint64_t a = max / 2;
    for (uint64_t b = max - 5; b <= max; ++b)
@@ -137,12 +137,12 @@ int extreme_values_tests()
            return 1;
 
    for (uint64_t a = 0; a < 5; ++a)
-	   for (uint64_t b = 0; b <= 5; ++b)
-           if (0 != test_unsigned<S, U, T>(static_cast<U>(a), static_cast<U>(b)))
+       for (uint64_t b = 0; b <= 5; ++b)
+           if (0 != test_unsigned<S, U, T>(static_cast<U>(a),static_cast<U>(b)))
                return 1;
    for (uint64_t a = max - 5; a <= max; ++a)
-	   for (uint64_t b = 0; b <= 5; ++b)
-           if (0 != test_unsigned<S, U, T>(static_cast<U>(a), static_cast<U>(b)))
+       for (uint64_t b = 0; b <= 5; ++b)
+           if (0 != test_unsigned<S, U, T>(static_cast<U>(a),static_cast<U>(b)))
                return 1;
 
    a = max / 2;

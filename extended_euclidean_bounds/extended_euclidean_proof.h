@@ -33,8 +33,8 @@
 template <typename T>
 void extended_euclidean_proof(T a, T b, T* pGcd, T* pX, T* pY)
 {
-	static_assert(std::numeric_limits<T>::is_integer, "");
-	static_assert(std::numeric_limits<T>::is_signed, "");
+    static_assert(std::numeric_limits<T>::is_integer, "");
+    static_assert(std::numeric_limits<T>::is_signed, "");
     assert(a >= 0);
     assert(b >= 0);
 

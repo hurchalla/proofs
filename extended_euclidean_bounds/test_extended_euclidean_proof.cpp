@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
    // test all combinations of a and b such that 0 <= a < 256 and 0 <= b < 256
    static_assert(std::numeric_limits<T>::max() >= 256, "");
    for (T a = 0; a < 256; ++a) {
-	   for (T b = 0; b < 256; ++b)
-		   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       for (T b = 0; b < 256; ++b)
+           extended_euclidean_proof(a, b, &gcd, &x, &y);
    }
    std::cout << "Passed exhaustive tests for all values 0 <= a < 256 with 0 <= b < 256.\n";
 
@@ -43,29 +43,29 @@ int main(int argc, char *argv[])
    T max = maxTmp;
 
    for (T a = 0; a < 5; ++a) {
-	   for (T b = max; b >= 0; --b)
-		   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       for (T b = max; b >= 0; --b)
+           extended_euclidean_proof(a, b, &gcd, &x, &y);
    }
    for (T a = max; a >= max - 5; --a) {
-	   for (T b = max; b >= 0; --b)
-		   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       for (T b = max; b >= 0; --b)
+           extended_euclidean_proof(a, b, &gcd, &x, &y);
    }
    a = max / 2;
    for (T b = max; b >= 0; --b)
-	   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       extended_euclidean_proof(a, b, &gcd, &x, &y);
 
 
    for (T a = max; a >= 0; --a) {
-	   for (T b = 0; b < 5; ++b)
-		   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       for (T b = 0; b < 5; ++b)
+           extended_euclidean_proof(a, b, &gcd, &x, &y);
    }
    for (T a = max; a >= 0; --a) {
-	   for (T b = max; b >= max - 5; --b)
-		   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       for (T b = max; b >= max - 5; --b)
+           extended_euclidean_proof(a, b, &gcd, &x, &y);
    }
    b = max / 2;
    for (T a = max; a >= 0; --a)
-	   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       extended_euclidean_proof(a, b, &gcd, &x, &y);
 
    std::cout << "Passed large combination tests.\n";
 
@@ -73,28 +73,28 @@ int main(int argc, char *argv[])
    // test combinations of a and b where a and b are extremely large or small
    max = std::numeric_limits<T>::max();
    for (T a = 0; a < 5; ++a) {
-	   for (T b = max; b >= max - 5; --b)
-		   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       for (T b = max; b >= max - 5; --b)
+           extended_euclidean_proof(a, b, &gcd, &x, &y);
    }
    for (T a = max; a >= max - 5; --a) {
-	   for (T b = max; b >= max - 5; --b)
-		   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       for (T b = max; b >= max - 5; --b)
+           extended_euclidean_proof(a, b, &gcd, &x, &y);
    }
    a = max / 2;
    for (T b = max; b >= max - 5; --b)
-	   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       extended_euclidean_proof(a, b, &gcd, &x, &y);
 
    for (T a = 0; a < 5; ++a) {
-	   for (T b = 0; b <= 5; ++b)
-		   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       for (T b = 0; b <= 5; ++b)
+           extended_euclidean_proof(a, b, &gcd, &x, &y);
    }
    for (T a = max; a >= max - 5; --a) {
-	   for (T b = 0; b <= 5; ++b)
-		   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       for (T b = 0; b <= 5; ++b)
+           extended_euclidean_proof(a, b, &gcd, &x, &y);
    }
    a = max / 2;
    for (T b = 0; b <= 5; ++b)
-	   extended_euclidean_proof(a, b, &gcd, &x, &y);
+       extended_euclidean_proof(a, b, &gcd, &x, &y);
 
    extended_euclidean_proof(a, a, &gcd, &x, &y);
 
